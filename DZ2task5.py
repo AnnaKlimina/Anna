@@ -1,73 +1,55 @@
-
-class GrafOrlov:
+class Graf:
     def __init__(self,s):
-        self.last=[]
         self.pr=[]
-        self.sp=set([])
-        self.dic={}
-        for j in range(len(s)):    
-                if not(s[j][0] in self.dic.keys()):                   
-                    self.dic[s[j][0]]=[1000,{s[j][1]},[s[j][1],s[j][2],0]]                   
-                else:
-                    self.dic[s[j][0]].append([s[j][1],s[j][2],0])
-                    self.dic[s[j][0]][1].add(s[j][1])
-                if not(s[j][1] in self.dic.keys()):
-                    self.dic[s[j][1]]=[1000,{s[j][0]},[s[j][0],s[j][2],0]]
-                else:
-                    self.dic[s[j][1]].append([s[j][0],s[j][2],0])
-                    self.dic[s[j][1]][1].add(s[j][0])
+        self.last=0
+        self.M=[[-1 for y in range(100)]for x in range(100)]
+        self.W=[1000 for y in range(100)]
+        self.F=[[False for y in range(100)] for x in range(100)]
+        self.s=set([])
+        self.sum=0
+        self.N=0
+        for i in range(len(s)):
+            self.M[s[i][0]][s[i][1]]=s[i][2]
+            self.M[s[i][1]][s[i][0]]=s[i][2]
+            if (self.N<s[i][1]):
+                self.N=s[i][1]
+            if (self.N<s[i][0]):
+                self.N=s[i][0]
+            self.s.add(s[i][0])
+            self.s.add(s[i][1])
 
-    def printG(self):
-        for j in self.dic.keys():
-            print(j,':',self.dic[j])
-            
 
     def ShortWay(self,start,end,k=0):
-        self.sp.add(start)    
-        while not(self.dic[start][1]<=self.sp)and(start!=end):
-            self.printG()
-            print("dc")
-            m=10000
-            for j in range(2,len(self.dic[start])):
-                print(start)
-                if (self.dic[start][j][1]<=m) and (self.dic[start][j][2]!=1):
-                    m=self.dic[start][j][1]
-                    b=j
-                    self.last=self.dic[start][j]
-            if (m!=10000)and(start!=end):
-                self.dic[self.last[0]][0]=m+self.dic[start][0]
-                self.dic[start][b][2]=1
-                for j in range(2,len(self.dic[self.last[0]])):
-                    if (self.dic[self.last[0]][j][1]==start):
-                        self.dic[self.last[0]][j][2]=1
-                        break                   
-                self.dic[self.last[0]]
-                self.ShortWay(self.last[0],end,k+1)
-                self.printG()
-        if(self.dic.keys()==self.sp) and (k==0):
-            self.printG()
+        for i in range(len(self.s)):
+            m=1000
+            point=-1
+            for j in (self.s-{start}):
+                if (start!=end)and(self.M[start][j]+self.last<self.W[j])and(self.M[start][j]>=0)and(self.F[start][j]!=True):
+                    self.W[j]=self.M[start][j]+self.last
+                if (start!=end)and(m>self.M[start][j]) and (self.F[start][j]!=True) and(self.M[start][j]>=0):
+                    m=self.M[start][j]
+                    point=j
+            if (point!=-1):
+                self.last=self.W[point]
+                self.F[start][point]=True
+                self.F[point][start]=True
+                self.ShortWay(point,end,k+1)
+        if(k==0):
             self.pr.insert(0,end)
-            self.printShort(start,end)
-            print("Длина пути-",self.dic[end][0]-1000,'\n',"Путь:")
-            for j in range(len(self.pr)):
-                print(self.pr[j],end=' ')
-                
+            self.printW(start,end)
+            self.pr.insert(0,start)
+            print("Путь:",self.pr)
 
-
-    def printShort(self,start,end):
-        for j in range(2,len(self.dic[end])):
-            if((self.dic[end][0]-self.dic[self.dic[end][j][0]][0])==self.dic[end][j][1]):
-                self.pr.insert(0,self.dic[end][j][0])
-                self.printShort(start,self.dic[end][j][0])
+    def printW(self,start,end):
+        for j in (self.s-{end}):
+            if(self.W[end]-self.M[end][j]==self.W[j])and(self.M[end][j]>=0):
+                self.pr.insert(0,j)
+                self.printW(start,j)
                 break
-        
-                
-            
-        
+
+
 s=eval(input("Введите массив рёбер:\n"))
-G=GrafOrlov(s)
-G.printG()
+G=Graf(s)
 b=int(input("Введите стартовую точку - "))
 e=int(input("Введите конечную точку - "))
 G.ShortWay(b,e)
-
